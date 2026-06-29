@@ -1,0 +1,4 @@
+# Normalize all text to LF in the repo so shell scripts and workflows run correctly on the
+# Linux/macOS CI runners regardless of the committer's platform.
+* text=auto eol=lf
+*.png binary

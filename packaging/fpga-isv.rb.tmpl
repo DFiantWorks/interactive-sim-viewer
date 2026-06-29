@@ -1,0 +1,36 @@
+class FpgaIsv < Formula
+  desc "Interactive Sim Viewer: config-driven graphical panel viewer for interactive-sim"
+  homepage "https://github.com/DFiantWorks/interactive-sim-viewer"
+  version "@VERSION@"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/DFiantWorks/interactive-sim-viewer/releases/download/v@VERSION@/fpga-isv-@VERSION@-macos-arm64.tar.gz"
+      sha256 "@SHA_MACOS_ARM64@"
+    end
+    on_intel do
+      url "https://github.com/DFiantWorks/interactive-sim-viewer/releases/download/v@VERSION@/fpga-isv-@VERSION@-macos-x86_64.tar.gz"
+      sha256 "@SHA_MACOS_X86_64@"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/DFiantWorks/interactive-sim-viewer/releases/download/v@VERSION@/fpga-isv-@VERSION@-linux-arm64.tar.gz"
+      sha256 "@SHA_LINUX_ARM64@"
+    end
+    on_intel do
+      url "https://github.com/DFiantWorks/interactive-sim-viewer/releases/download/v@VERSION@/fpga-isv-@VERSION@-linux-x86_64.tar.gz"
+      sha256 "@SHA_LINUX_X86_64@"
+    end
+  end
+
+  def install
+    bin.install "fpga-isv"
+  end
+
+  test do
+    assert_match "fpga-isv", shell_output("#{bin}/fpga-isv --version")
+  end
+end

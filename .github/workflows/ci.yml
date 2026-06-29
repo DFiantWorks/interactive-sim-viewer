@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]      # CI on merges to main...
+  pull_request:           # ...and on every PR
+  workflow_dispatch:
+  # Release tags (v*) are handled by release.yml, not here.
+
+permissions:
+  contents: read
+
+jobs:
+  # Headless protocol/config tests + CLI smoke, across the three OSes we ship.
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install test deps
+        run: python -m pip install --upgrade pip pytest pillow
+      - name: Unit tests
+        run: python -m pytest -q
+      - name: CLI smoke
+        run: |
+          python -m fpga_isv --version
+          python -m fpga_isv --list-examples
+
+  # Build the frozen binary on one platform so packaging breaks surface on PRs (the full
+  # per-platform matrix only runs on a v* tag, in release.yml).
+  package-smoke:
+    name: package-smoke (linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install build deps
+        run: python -m pip install --upgrade pip pyinstaller pillow
+      - name: Build one-file binary
+        run: pyinstaller packaging/fpga_isv.spec
+      - name: Run the frozen binary
+        run: |
+          ./dist/fpga-isv --version
+          ./dist/fpga-isv --list-examples

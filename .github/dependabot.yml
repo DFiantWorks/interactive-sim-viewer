@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Keep the GitHub Actions in .github/workflows/* on their latest versions
+  # (checkout, setup-python, upload/download-artifact, gh-release, pypi-publish, ...).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+
+  # Keep the Python dependencies declared in pyproject.toml current (pillow, plus the
+  # build-time tools when pinned). Dependabot reads pyproject.toml for the pip ecosystem.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
