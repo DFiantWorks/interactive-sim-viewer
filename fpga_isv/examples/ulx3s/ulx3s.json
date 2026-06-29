@@ -1,0 +1,39 @@
+{
+  "_comment": "Reference example for fpga-isv: a photo of the ULX3S board with the 8 user LEDs and the buttons mapped. Coordinates are in ORIGINAL image pixels (this photo is 1852x1214); image.crop trims the photo and image.scale scales it, but the map stays in original-image pixels so it is independent of crop/scale. The image is the committed local PNG (resolved against this config's dir). Run with --calibrate and click the photo to read off pixel coordinates for retuning or mapping a different photo.",
+
+  "title": "ULX3S",
+
+  "image": {
+    "url": "ULX3S_v303_top.png",
+    "crop": [160, 195, 1650, 1010],
+    "scale": 0.72
+  },
+
+  "leds": {
+    "on_color": "#ff5a36",
+    "shape": "rect",
+    "w": 26,
+    "h": 32,
+    "glow": true,
+    "items": [
+      { "name": "leds", "bit": 0, "x": 632, "y": 480 },
+      { "name": "leds", "bit": 1, "x": 595, "y": 480 },
+      { "name": "leds", "bit": 2, "x": 558, "y": 480 },
+      { "name": "leds", "bit": 3, "x": 521, "y": 480 },
+      { "name": "leds", "bit": 4, "x": 484, "y": 480 },
+      { "name": "leds", "bit": 5, "x": 447, "y": 480 },
+      { "name": "leds", "bit": 6, "x": 410, "y": 480 },
+      { "name": "leds", "bit": 7, "x": 373, "y": 480 }
+    ]
+  },
+
+  "buttons": [
+    { "name": "btn_pwr",   "shape": "circle", "x": 1375, "y": 401, "r": 42, "key": "p" },
+    { "name": "btn_fire1", "shape": "circle", "x": 406,  "y": 623, "r": 34, "key": "space" },
+    { "name": "btn_fire2", "shape": "circle", "x": 572,  "y": 628, "r": 34, "key": "Return" },
+    { "name": "btn_up",    "shape": "circle", "x": 1210, "y": 777, "r": 36, "key": "Up" },
+    { "name": "btn_down",  "shape": "circle", "x": 1206, "y": 907, "r": 36, "key": "Down" },
+    { "name": "btn_left",  "shape": "circle", "x": 1039, "y": 906, "r": 36, "key": "Left" },
+    { "name": "btn_right", "shape": "circle", "x": 1377, "y": 910, "r": 36, "key": "Right" }
+  ]
+}

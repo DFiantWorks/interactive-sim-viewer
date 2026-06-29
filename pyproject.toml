@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fpga-isv"
+description = "fpga-isv (ISV = Interactive Sim Viewer): a config-driven graphical panel viewer for interactive-sim."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Oron Port", email = "oron.port@dfiant.works" }]
+keywords = ["fpga", "simulation", "viewer", "hdl", "interactive-sim", "ulx3s"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    "Programming Language :: Python :: 3",
+]
+# tkinter is stdlib (not pip-installable); Pillow is needed for JPEG/crop/non-integer scale
+# (the bundled ULX3S example uses it). PNG/GIF panels work on stdlib Tk without Pillow.
+dependencies = ["pillow"]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/DFiantWorks/interactive-sim-viewer"
+"interactive-sim" = "https://github.com/DFiantWorks/interactive-sim"
+
+[project.scripts]
+fpga-isv = "fpga_isv.viewer:main"
+
+[tool.setuptools]
+packages = ["fpga_isv"]
+
+[tool.setuptools.dynamic]
+version = { attr = "fpga_isv.__version__" }
+
+[tool.setuptools.package-data]
+# Ship the bundled example panels (config + photo) inside the wheel so `--example` works
+# from a pip/pipx install as well as from the PyInstaller bundle.
+fpga_isv = ["examples/**/*"]
