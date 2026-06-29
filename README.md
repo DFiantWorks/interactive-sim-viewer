@@ -1,4 +1,4 @@
-# fpga-isv — Interactive Sim Viewer
+# fpga-isv: Interactive Sim Viewer
 
 A cross-platform **graphical panel viewer** for
 [interactive-sim](https://github.com/DFiantWorks/interactive-sim). It draws a board *photo* (or a
@@ -6,7 +6,7 @@ blank *panel* you mock up), overlays the LEDs and buttons at their pixel positio
 that virtual panel to a running HDL simulation: **design-driven flags light the LEDs**, and
 **clicking a button feeds a control back into the design**.
 
-`fpga-isv` is a *pure client of the interactive-sim socket API* — it knows nothing about HDL or
+`fpga-isv` is a *pure client of the interactive-sim socket API* and knows nothing about HDL or
 simulators. Anything that speaks the same newline-delimited-JSON protocol works with it. The
 [ULX3S](https://github.com/ulx3s/ulx3s) board ships as the bundled reference example.
 
@@ -14,14 +14,16 @@ simulators. Anything that speaks the same newline-delimited-JSON protocol works 
 fpga-isv --example ulx3s
 ```
 
+![The ULX3S example running: the simulation drives the LEDs and mouse clicks on the board buttons feed back into the design.](docs/ulx3s_demo.gif)
+
 ## How it connects
 
 The viewer **listens** on a TCP port; the simulation **connects to it** (set
 `INTERACTIVE_STREAM=host:port` for the sim). This means you can:
 
-- **open and close the viewer at any time** — the sim's backend keeps reconnecting;
-- **stop or restart the simulation** while the viewer stays up — on each (re)connect the sim
-  replays its full state (every component + last values), so the panel repopulates automatically.
+- **open and close the viewer at any time**, and the sim's backend keeps reconnecting;
+- **stop or restart the simulation** while the viewer stays up. On each (re)connect the sim
+  replays its full state (every component plus last values), so the panel repopulates automatically.
 
 ```sh
 fpga-isv --example ulx3s --host 0.0.0.0 --port 7777
@@ -38,22 +40,23 @@ Three ways, depending on whether you have Python:
 | **pipx** (Python users) | `pipx install fpga-isv` | a Python that ships `tkinter` |
 | **Homebrew** (macOS / Linux) | `brew tap DFiantWorks/fpga-isv https://github.com/DFiantWorks/homebrew-fpga-isv && brew install fpga-isv` | Homebrew |
 
-The standalone binary bundles its own Python + Tcl/Tk + Pillow, so it runs with no prerequisites.
-`pipx`/source installs need a Python with `tkinter` (stdlib, but a separate OS package on some
-Linux distros, e.g. `apt install python3-tk`); Pillow is pulled in automatically and is required
-for JPEG photos and cropped / non-integer-scaled images (PNG/GIF panels work on stdlib Tk alone).
+The standalone binary bundles its own Python, Tcl/Tk, and Pillow, so it runs with no
+prerequisites. `pipx` and source installs need a Python with `tkinter` (stdlib, but a separate OS
+package on some Linux distros, e.g. `apt install python3-tk`); Pillow is pulled in automatically
+and is required for JPEG photos and cropped or non-integer-scaled images (PNG/GIF panels work on
+stdlib Tk alone).
 
 > **macOS note:** the released binaries are currently **unsigned**. Launched by another process
 > directly they run fine; launched via Finder/`open` from a browser-downloaded copy, Gatekeeper
-> blocks them until you clear quarantine — `xattr -dr com.apple.quarantine ./fpga-isv` or
-> right-click → Open once. **Homebrew** installs strip quarantine, so `brew install` avoids the
-> prompt entirely; `pipx` has no binary to quarantine.
+> blocks them until you clear quarantine: run `xattr -dr com.apple.quarantine ./fpga-isv`, or
+> right-click then Open once. **Homebrew** installs strip quarantine, so `brew install` avoids the
+> prompt entirely, and `pipx` has no binary to quarantine.
 
 ## Config
 
-A panel is described by one JSON file. All coordinates are in **original-image pixels**;
+A panel is described by one JSON file. All coordinates are in **original-image pixels**.
 `image.scale` scales the photo/panel and every coordinate together for display, and `image.crop`
-trims a photo to the board — the map stays in original-image pixels so it is independent of crop
+trims a photo to the board. The map stays in original-image pixels, so it is independent of crop
 and window size.
 
 A **photo** panel:
@@ -68,7 +71,7 @@ A **photo** panel:
 }
 ```
 
-A **blank panel** mockup (no photo — lay controls out from scratch):
+A **blank panel** mockup (no photo; lay controls out from scratch):
 
 ```jsonc
 {
@@ -105,7 +108,7 @@ fpga-isv --version
 
 ## Wire protocol
 
-Newline-delimited JSON, one message per line (defined by interactive-sim; every sim→viewer
+Newline-delimited JSON, one message per line (defined by interactive-sim; every sim to viewer
 message carries `t`, the simulation time in µs):
 
 ```

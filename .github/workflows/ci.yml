@@ -3,7 +3,13 @@ name: CI
 on:
   push:
     branches: [main]      # CI on merges to main...
-  pull_request:           # ...and on every PR
+    paths-ignore:         # ...but skip doc-only changes (README, other markdown, docs assets)
+      - '**/*.md'
+      - 'docs/**'
+  pull_request:           # ...and on every PR (same doc-only skip)
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
   workflow_dispatch:
   # Release tags (v*) are handled by release.yml, not here.
 
