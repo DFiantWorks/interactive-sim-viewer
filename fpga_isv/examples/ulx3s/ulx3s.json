@@ -10,30 +10,29 @@
   },
 
   "leds": {
-    "on_color": "#ff5a36",
     "shape": "rect",
     "w": 26,
     "h": 32,
     "glow": true,
     "items": [
-      { "name": "leds", "bit": 0, "x": 632, "y": 480 },
-      { "name": "leds", "bit": 1, "x": 595, "y": 480 },
-      { "name": "leds", "bit": 2, "x": 558, "y": 480 },
-      { "name": "leds", "bit": 3, "x": 521, "y": 480 },
-      { "name": "leds", "bit": 4, "x": 484, "y": 480 },
-      { "name": "leds", "bit": 5, "x": 447, "y": 480 },
-      { "name": "leds", "bit": 6, "x": 410, "y": 480 },
-      { "name": "leds", "bit": 7, "x": 373, "y": 480 }
+      { "name": "H3", "x": 632, "y": 480, "color": "#e63d4e" },
+      { "name": "E1", "x": 595, "y": 480, "color": "#fedd64" },
+      { "name": "E2", "x": 558, "y": 480, "color": "#82dfac" },
+      { "name": "D1", "x": 521, "y": 480, "color": "#2da0f3" },
+      { "name": "D2", "x": 484, "y": 480, "color": "#ff5a36" },
+      { "name": "C1", "x": 447, "y": 480, "color": "#fedd64" },
+      { "name": "C2", "x": 410, "y": 480, "color": "#82dfac" },
+      { "name": "B2", "x": 373, "y": 480, "color": "#2da0f3" }
     ]
   },
 
   "buttons": [
-    { "name": "btn_pwr",   "shape": "circle", "x": 1375, "y": 401, "r": 42, "key": "p" },
-    { "name": "btn_fire1", "shape": "circle", "x": 406,  "y": 623, "r": 34, "key": "space" },
-    { "name": "btn_fire2", "shape": "circle", "x": 572,  "y": 628, "r": 34, "key": "Return" },
-    { "name": "btn_up",    "shape": "circle", "x": 1210, "y": 777, "r": 36, "key": "Up" },
-    { "name": "btn_down",  "shape": "circle", "x": 1206, "y": 907, "r": 36, "key": "Down" },
-    { "name": "btn_left",  "shape": "circle", "x": 1039, "y": 906, "r": 36, "key": "Left" },
-    { "name": "btn_right", "shape": "circle", "x": 1377, "y": 910, "r": 36, "key": "Right" }
+    { "name": "D6",  "shape": "circle", "x": 1375, "y": 401, "r": 42, "key": "p", "active_state": "released" },
+    { "name": "R1",  "shape": "circle", "x": 406,  "y": 623, "r": 34, "key": "space" },
+    { "name": "T1",  "shape": "circle", "x": 572,  "y": 628, "r": 34, "key": "Return" },
+    { "name": "R18", "shape": "circle", "x": 1210, "y": 777, "r": 36, "key": "Up" },
+    { "name": "V1",  "shape": "circle", "x": 1206, "y": 907, "r": 36, "key": "Down" },
+    { "name": "U1",  "shape": "circle", "x": 1039, "y": 906, "r": 36, "key": "Left" },
+    { "name": "H16", "shape": "circle", "x": 1377, "y": 910, "r": 36, "key": "Right" }
   ]
 }

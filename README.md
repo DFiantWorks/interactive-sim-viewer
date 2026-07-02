@@ -86,8 +86,15 @@ A **blank panel** mockup (no photo; lay controls out from scratch):
   **relative to the config file**. Use `width`/`height`/`bg` instead of `url` for a blank panel.
 - An LED **item** lights when bit `bit` of flag `name` is `1`, so an N-bit bus is N items with
   different bit indices and a 1-bit flag is one item.
+- The `leds` group's `on_color`, `shape`, `w`/`h`, `r`, and `active_state` are defaults; any item
+  can override them (e.g. `"on_color": "#00ff00"`) to give individual LED indices their own color,
+  geometry, or polarity.
 - A **button** sends `1` on press and `0` on release (momentary); `"toggle": true` flips and
   latches. `"key"` mirrors it to a keyboard key (Tk keysym, e.g. `p`, `space`, `Up`).
+- **`active_state` sets what a high bit (`1`) means.** For an **LED** it is `"on"` (default; `1`
+  lights it) or `"off"` (active-low; `0` lights it). For a **button** it is `"pressed"` (default;
+  press sends `1`, release `0`) or `"released"` (active-low; press sends `0`, release `1`, so the
+  wire idles high until pressed).
 
 ### Mapping a new photo
 

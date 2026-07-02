@@ -7,9 +7,10 @@ sit on it. The viewer is a pure client of the interactive-sim wire protocol: it 
 TCP port, the simulation connects to it (set INTERACTIVE_STREAM=host:port for the sim), and:
 
   * design-driven `flag` events light an LED overlay at its mapped position, in the configured
-    "on" colour;
+    "on" colour (a bit value of 1 lights it, or 0 if the LED's `active_state` is "off");
   * a mouse click is hit-tested against the button regions; the button under the cursor sends
-    `val=1` on press and `val=0` on release (a `"toggle": true` button flips and latches).
+    `val=1` on press and `val=0` on release (a `"toggle": true` button flips and latches; an
+    `"active_state": "released"` button inverts this, so pressing sends `val=0`).
 
 The viewer can be opened and closed at any time, and tolerates the simulation stopping or
 restarting: it keeps its listen socket open and accepts reconnections, clearing all overlays on
@@ -23,14 +24,17 @@ every coordinate together for display:
     "image":  { "url": "...png" | "/path" | "rel/path",   # a photo (relative paths are resolved
                 "cache": "name.png", "crop": [x0,y0,x1,y1], "scale": 0.72 },   # against the config dir)
     "image":  { "width": 1200, "height": 800, "bg": "#101418", "scale": 1.0 }, # ...OR a blank panel
-    "leds":   { "on_color": "#ff5a36", "radius": 13, "glow": true,
+    "leds":   { "on_color": "#ff5a36", "radius": 13, "glow": true, "active_state": "on",
                 "items": [ { "name": "leds", "bit": 0, "x": 632, "y": 422 }, ... ] },
     "buttons":[ { "name": "btn_pwr", "shape": "circle", "x": 1400, "y": 343, "r": 42, "key": "p" },
                 { "name": "sw0", "shape": "rect", "x": 800, "y": 250, "w": 30, "h": 30, "toggle": true } ]
   }
 
 An LED item lights when bit `bit` of flag `name` is 1, so an N-bit bus ("leds") is N items with
-different bit indices, and a 1-bit flag ("led3") is one item.
+different bit indices, and a 1-bit flag ("led3") is one item. `active_state` selects the high-bit
+meaning: "on" (default) lights the LED on a 1, "off" lights it on a 0 (active-low); it is a `leds`
+default that any item can override. Likewise a button's `active_state` is "pressed" (default; press
+sends 1) or "released" (active-low; press sends 0, and the wire idles at 1).
 
 Building a map for a new photo/panel: run with --calibrate and click on it; each click prints the
 original-image pixel coordinate to the console (and marks it), so you can read off the x/y for
@@ -97,9 +101,21 @@ def mask(val, width):
     return val & ((1 << width) - 1)
 
 
-def led_on(val, bit):
-    """Whether bit `bit` of flag value `val` is set."""
-    return bool((val >> bit) & 1)
+def led_on(val, bit, active_low=False):
+    """Whether the LED for bit `bit` of flag value `val` should light.
+
+    Active-high (default): lit when the bit is 1. Active-low (`active_low=True`, i.e. the item's
+    `active_state` is "off"): lit when the bit is 0 -- receiving 0 means "on"."""
+    return bool((val >> bit) & 1) != active_low
+
+
+def button_value(pressed, active_low=False):
+    """Wire value a button sends for its physical state `pressed` (True while held/latched down).
+
+    Active-high (default, `active_state` "pressed"): 1 while pressed, 0 while released.
+    Active-low (`active_low=True`, `active_state` "released"): 0 while pressed, 1 while released --
+    pressing sends 0 and the line idles at 1."""
+    return int(bool(pressed) != active_low)
 
 
 # ---------------------------------------------------------------------------
@@ -220,10 +236,12 @@ class Board:
         r = leds.get("radius", 13)
         dw, dh = leds.get("w", 16), leds.get("h", 26)
         glow = leds.get("glow", True)
+        active = leds.get("active_state", "on")   # "on" (bit 1 lights) | "off" (bit 0 lights)
         for item in leds.get("items", []):
             x, y = self._px(item["x"]), self._py(item["y"])
-            color = item.get("color", on)
+            color = item.get("on_color", item.get("color", on))
             sh = item.get("shape", shape)
+            active_low = item.get("active_state", active) == "off"
             if sh == "rect":
                 hw, hh = self._sz(item.get("w", dw)) / 2, self._sz(item.get("h", dh)) / 2
                 box = (x - hw, y - hh, x + hw, y + hh)
@@ -238,7 +256,8 @@ class Board:
             if glow:
                 gid = mk(*gbox, fill=color, outline="", stipple="gray50", state="hidden")
             cid = mk(*box, fill=color, outline=LED_OFF_RIM, width=1, state="hidden")
-            self.leds.setdefault(item["name"], []).append((item.get("bit", 0), cid, gid))
+            self.leds.setdefault(item["name"], []).append(
+                (item.get("bit", 0), cid, gid, active_low))
 
     def _build_buttons(self, buttons):
         # (x, y) is the button CENTRE for both shapes.
@@ -257,8 +276,11 @@ class Board:
                 ov = self.c.create_oval(x - r, y - r, x + r, y + r,
                                         outline=CAL_COLOR, width=1, fill=CAL_COLOR,
                                         stipple="gray25", state="hidden")
+            # active_state "pressed" (default): press sends 1, release 0. "released" (active-low):
+            # press sends 0, release 1 -- the line idles high and pressing pulls it low.
+            active_low = b.get("active_state", "pressed") == "released"
             entry = {"name": b["name"], "region": region, "overlay": ov,
-                     "toggle": b.get("toggle", False), "state": 0}
+                     "toggle": b.get("toggle", False), "state": 0, "active_low": active_low}
             self.buttons.append(entry)
             if b.get("key"):
                 self.key_to_btn[b["key"]] = entry
@@ -287,18 +309,20 @@ class Board:
     def release(self):
         if self.held:
             self.c.itemconfig(self.held["overlay"], state="hidden")
-            self.send_control(self.held["name"], 0)
+            self.send_control(self.held["name"], button_value(False, self.held["active_low"]))
             self.held = None
 
     def _activate(self, b):
+        # b["state"] tracks the physical (latched, for toggles) pressed state; the wire value is
+        # derived from it via button_value so active-low buttons invert what goes on the wire.
         if b["toggle"]:
             b["state"] ^= 1
             self.c.itemconfig(b["overlay"], state="normal" if b["state"] else "hidden")
-            self.send_control(b["name"], b["state"])
+            self.send_control(b["name"], button_value(b["state"], b["active_low"]))
         else:
             self.held = b
             self.c.itemconfig(b["overlay"], state="normal")
-            self.send_control(b["name"], 1)
+            self.send_control(b["name"], button_value(True, b["active_low"]))
 
     def key_press(self, event):
         b = self.key_to_btn.get(event.keysym)
@@ -313,21 +337,21 @@ class Board:
             if b["toggle"]:
                 return
             self.c.itemconfig(b["overlay"], state="hidden")
-            self.send_control(b["name"], 0)
+            self.send_control(b["name"], button_value(False, b["active_low"]))
             if self.held is b:
                 self.held = None
 
     # -- LED updates --------------------------------------------------------
     def apply_flag(self, name, val):
-        for (bit, cid, gid) in self.leds.get(name, []):
-            on = led_on(val, bit)
+        for (bit, cid, gid, active_low) in self.leds.get(name, []):
+            on = led_on(val, bit, active_low)
             self.c.itemconfig(cid, state="normal" if on else "hidden")
             if gid != -1:
                 self.c.itemconfig(gid, state="normal" if on else "hidden")
 
     def all_off(self):
         for items in self.leds.values():
-            for (_, cid, gid) in items:
+            for (_, cid, gid, _al) in items:
                 self.c.itemconfig(cid, state="hidden")
                 if gid != -1:
                     self.c.itemconfig(gid, state="hidden")

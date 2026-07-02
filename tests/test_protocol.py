@@ -7,7 +7,8 @@ run without a display -- safe in CI.
 import json
 
 from fpga_isv import examples
-from fpga_isv.viewer import Board, decode_message, encode_control, led_on, mask
+from fpga_isv.viewer import (
+    Board, button_value, decode_message, encode_control, led_on, mask)
 
 
 # -- wire protocol parsing --------------------------------------------------
@@ -44,6 +45,23 @@ def test_mask_keeps_low_bits():
 def test_led_on_reads_individual_bits():
     val = 0b1010
     assert [led_on(val, b) for b in range(4)] == [False, True, False, True]
+
+
+def test_led_on_active_low_inverts_polarity():
+    # active_state "off" -> a 0 bit lights the LED, a 1 bit turns it off.
+    val = 0b1010
+    assert [led_on(val, b, active_low=True) for b in range(4)] == [True, False, True, False]
+    # default stays active-high
+    assert led_on(0b1, 0) is True and led_on(0b0, 0) is False
+
+
+def test_button_value_maps_press_state_to_wire_value():
+    # active-high (default, "pressed"): pressed -> 1, released -> 0
+    assert button_value(True) == 1
+    assert button_value(False) == 0
+    # active-low ("released"): pressed -> 0, released -> 1 (wire idles high)
+    assert button_value(True, active_low=True) == 0
+    assert button_value(False, active_low=True) == 1
 
 
 # -- geometry (Board._hit is a staticmethod -> no Tk needed) ----------------
