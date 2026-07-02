@@ -88,7 +88,9 @@ def test_ulx3s_example_is_discoverable_and_valid():
         cfg = json.load(f)
     assert cfg["title"] == "ULX3S"
     assert len(cfg["leds"]["items"]) == 8
-    assert any(b["name"] == "btn_pwr" for b in cfg["buttons"])
+    # the power button (mirrored to the "p" key) is active-low on this board
+    pwr = next(b for b in cfg["buttons"] if b.get("key") == "p")
+    assert pwr["active_state"] == "released"
 
 
 def test_unknown_example_raises():
